@@ -1,0 +1,39 @@
+server:
+  port: 2388
+  contextPath: "/todoapp"
+
+management:
+  port: 2488
+  contextPath: "/todoapp"
+
+logging:
+  config: "templates/logback-local.xml"
+
+ldap:
+  url: ""
+  baseDn: ""
+  usersBaseDn: ""
+  groupsBaseDn: ""
+  authDn: ""
+  authPassword: ""
+
+jwt:
+  issuer: "jubilant-todo-tribble"
+  secret: ""
+  duration: 3600000
+
+access:
+  roles:
+    admin:
+      - ""
+    agent:
+      - ""
+      - ""
+
+rest:
+  connectionTimeout: 3000
+  readTimeout: 10000
+
+gitlab:
+  url: ""
+  privateToken: ""
