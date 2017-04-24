@@ -13,13 +13,14 @@ open class TodoScanner constructor(
 ) {
     private val log by logger()
 
-    init { }
+    init {
+    }
 
     @Scheduled(fixedDelay = 10000)
     fun update() {
         // todo make repo configurable
         val fileUrls = mutableSetOf<String>()
-        val treeUrls = mutableSetOf("${gitlabConfiguration.url}/api/v4/projects/1801/repository/tree")
+        val treeUrls = mutableSetOf("")
         while (treeUrls.isNotEmpty()) {
             val res = findTreeAndFileUrls(treeUrls.first())
             log.info("found ${res.fileUrls.size} file(s) and ${res.treeUrls.size} tree(s)")
@@ -27,38 +28,33 @@ open class TodoScanner constructor(
             treeUrls.addAll(res.treeUrls)
             fileUrls.addAll(res.fileUrls)
         }
+        log.info("found ${fileUrls.size} files")
         fileUrls.forEach { url -> log.info(url) }
     }
 
-    private fun findTreeAndFileUrls(initialUrl: String): GitlabDirectory {
-        val r = get(initialUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken))
+    private fun findTreeAndFileUrls(treePath: String): GitlabDirectory {
+        val gitlabUrl = "${gitlabConfiguration.url}/api/v4/projects/1801/repository/tree"
+        val r = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "path" to treePath))
         log.info("requesting ${r.request.url}")
         val files = r.jsonArray
         val fileUrls = mutableSetOf<String>()
         val treeUrls = mutableSetOf<String>()
         for (i in 0..files.length() - 1) {
             val fileOrTree = files.getJSONObject(i)
-            val encodedPath: String = encodePunkt(fileOrTree)
+            val encodedPath: String = encodePunktAndSlash(fileOrTree)
             if (fileOrTree.getString("type") == "blob") {
                 fileUrls.add(encodedPath)
             } else { // type tree
-                treeUrls.add(encodedPath)
-//                todo
-//                /api/v4/projects/1801/repository/tree?path=src/main&private_token=...
+                treeUrls.add(fileOrTree.getString("path"))
             }
         }
-        log.info("found ${fileUrls.size} file(s) and ${treeUrls.size} tree(s)")
         return GitlabDirectory(fileUrls, treeUrls)
     }
 
-    private fun encodePunkt(fileOrTree: JSONObject): String {
+    private fun encodePunktAndSlash(fileOrTree: JSONObject): String {
         val path = fileOrTree.getString("path")
         val encodedPath: String
-        if (path.contains(".")) {
-            encodedPath = path.replace(".", "%2E")
-        } else {
-            encodedPath = path
-        }
+        encodedPath = path.replace(".", "%2E").replace("/", "%2F")
         return encodedPath
     }
 
