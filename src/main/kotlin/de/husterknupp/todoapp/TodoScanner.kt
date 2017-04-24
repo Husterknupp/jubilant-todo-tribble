@@ -86,6 +86,7 @@ open class TodoScanner constructor(
     }
 
     data class GitlabDirectory(val fileUrls: Set<String>, val treeUrls: Set<String>)
+//    todo extract as standalone class
     data class Todo(val fileUrl: String, val lineOfCode: Int, val todoLineStr: String, val context: String) {
         override fun toString(): String = "Todo(file=${fileUrl}, lineOfCode=$lineOfCode, todoLineStr=$todoLineStr)"
     }
