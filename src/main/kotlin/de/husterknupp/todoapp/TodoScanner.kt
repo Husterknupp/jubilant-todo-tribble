@@ -12,6 +12,7 @@ open class TodoScanner constructor(
         private val gitlabConfiguration: GitlabConfiguration
 ) {
     private val log by logger()
+    private val repoSegment: String = "/api/v4/projects/1801/repository"
 
     init {
     }
@@ -30,10 +31,12 @@ open class TodoScanner constructor(
         }
         log.info("found ${fileUrls.size} files")
         fileUrls.forEach { url -> log.info(url) }
+
+        log.info("found ${fileUrls.flatMap { url -> downloadAndFindTodos(url) }.size} todos")
     }
 
     private fun findTreeAndFileUrls(treePath: String): GitlabDirectory {
-        val gitlabUrl = "${gitlabConfiguration.url}/api/v4/projects/1801/repository/tree"
+        val gitlabUrl = "${gitlabConfiguration.url}${repoSegment}/tree"
         val r = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "path" to treePath))
         log.info("requesting ${r.request.url}")
         val files = r.jsonArray
@@ -51,6 +54,30 @@ open class TodoScanner constructor(
         return GitlabDirectory(fileUrls, treeUrls)
     }
 
+    private fun downloadAndFindTodos(url: String): List<Todo> {
+        val gitlabUrl = "${gitlabConfiguration.url}${repoSegment}/files/$url/raw"
+        val r = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "ref" to "master"))
+        val lines = r.text.lines()
+        val todos: MutableList<Todo> = mutableListOf<Todo>()
+        for (i in 0..lines.size - 1) {
+            val line = lines[i]
+            if (line.contains("todo", ignoreCase = true)) {
+                var context = ""
+                for (j in 7 downTo 1) {
+                    context += "\n" + lines.getOrElse(i - j, {""})
+                }
+                context += line
+                for (j in 1..7) {
+                    context += "\n" + lines.getOrElse(i + j, {""})
+                }
+                val todo = Todo(url, i + 1, line, context)
+                todos.add(todo)
+                log.info("found new todo: ${todo.toString()} in ${r.url}")
+            }
+        }
+        return todos
+    }
+
     private fun encodePunktAndSlash(fileOrTree: JSONObject): String {
         val path = fileOrTree.getString("path")
         val encodedPath: String
@@ -58,5 +85,8 @@ open class TodoScanner constructor(
         return encodedPath
     }
 
-    class GitlabDirectory(val fileUrls: Set<String>, val treeUrls: Set<String>)
+    data class GitlabDirectory(val fileUrls: Set<String>, val treeUrls: Set<String>)
+    data class Todo(val fileUrl: String, val lineOfCode: Int, val todoLineStr: String, val context: String) {
+        override fun toString(): String = "Todo(file=${fileUrl}, lineOfCode=$lineOfCode, todoLineStr=$todoLineStr)"
+    }
 }
