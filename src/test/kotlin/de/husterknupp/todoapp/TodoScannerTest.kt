@@ -7,9 +7,10 @@ import org.junit.Test
 class TodoScannerTest {
     @Test
     fun update() {
+
         val gitlabConfiguration = GitlabConfiguration()
-        gitlabConfiguration.privateToken = ""
-        gitlabConfiguration.url = ""
+        gitlabConfiguration.privateToken = Credentials().privateToken()
+        gitlabConfiguration.url = Credentials().gitlabUrl()
         val scanner = TodoScanner(gitlabConfiguration)
 
         scanner.update()
