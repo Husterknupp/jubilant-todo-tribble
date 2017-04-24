@@ -1,9 +1,6 @@
 # jubilant-todo-tribble
 find repo todos, create Jira tickets and reference todos in the tickets.
 
-## MySQL
-create db `jubilant-todo-tribble`
-
 ### Compile & Run
 ```
 mvn package
