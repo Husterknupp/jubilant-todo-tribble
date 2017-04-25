@@ -9,6 +9,9 @@ class JiraHandlerTest {
     fun createJiraIssue() {
         val jiraConfig = JiraConfiguration()
         jiraConfig.url = Credentials().jiraUrl()
+        jiraConfig.username = Credentials().jiraUsername()
+        jiraConfig.password = Credentials().jiraPassword()
+        jiraConfig.assignee = Credentials().jiraAssignee()
         val jiraHandler = JiraHandler(jiraConfig)
         jiraHandler.createJiraIssue()
     }
