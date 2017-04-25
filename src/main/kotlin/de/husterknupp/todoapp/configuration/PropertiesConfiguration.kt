@@ -41,6 +41,17 @@ open class JiraConfiguration {
 
     @NotNull
     lateinit var assignee: String
+
+    @NotNull
+    lateinit var projectId: String
+
+    @NotNull
+    lateinit var issueTypeId: String
+
+    @NotNull
+    lateinit var componentId: String
+
+
 }
 
 @Configuration

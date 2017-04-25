@@ -6,12 +6,26 @@ import org.junit.Test
 class JiraHandlerTest {
 
     @Test
+    fun getJiraIssuesOfAssignee() {
+        val jiraConfig = JiraConfiguration()
+        jiraConfig.url = Credentials().jiraUrl()
+        jiraConfig.username = Credentials().jiraUsername()
+        jiraConfig.password = Credentials().jiraPassword()
+        jiraConfig.assignee = Credentials().jiraAssignee()
+        val jiraHandler = JiraHandler(jiraConfig)
+        jiraHandler.getJiraIssuesOfAssignee()
+    }
+
+    @Test
     fun createJiraIssue() {
         val jiraConfig = JiraConfiguration()
         jiraConfig.url = Credentials().jiraUrl()
         jiraConfig.username = Credentials().jiraUsername()
         jiraConfig.password = Credentials().jiraPassword()
         jiraConfig.assignee = Credentials().jiraAssignee()
+        jiraConfig.issueTypeId = Credentials().jiraIssueTypeId()
+        jiraConfig.componentId = Credentials().jiraComponentId()
+        jiraConfig.projectId = Credentials().jiraProjectId()
         val jiraHandler = JiraHandler(jiraConfig)
         jiraHandler.createJiraIssue()
     }
