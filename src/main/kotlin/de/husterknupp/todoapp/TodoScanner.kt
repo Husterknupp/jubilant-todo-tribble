@@ -37,9 +37,9 @@ open class TodoScanner constructor(
 
     private fun findTreeAndFileUrls(treePath: String): GitlabDirectory {
         val gitlabUrl = "${gitlabConfiguration.url}${repoSegment}/tree"
-        val r = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "path" to treePath))
-        log.info("requesting ${r.request.url}")
-        val files = r.jsonArray
+        val response = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "path" to treePath))
+        log.info("requesting ${response.request.url}")
+        val files = response.jsonArray
         val fileUrls = mutableSetOf<String>()
         val treeUrls = mutableSetOf<String>()
         for (i in 0..files.length() - 1) {

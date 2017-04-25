@@ -27,6 +27,23 @@ open class GitlabConfiguration {
 }
 
 @Configuration
+@ConfigurationProperties(prefix = "jira")
+open class JiraConfiguration {
+
+    @NotNull
+    lateinit var url: String
+
+    @NotNull
+    lateinit var username: String
+
+    @NotNull
+    lateinit var password: String
+
+    @NotNull
+    lateinit var assignee: String
+}
+
+@Configuration
 @ConfigurationProperties(prefix = "ldap")
 open class LdapConfiguration {
 

@@ -37,3 +37,12 @@ rest:
 gitlab:
   url: ""
   privateToken: ""
+
+jira:
+  url: ""
+  username: ""
+  password: ""
+  projectId: ""
+  issueTypeId: ""
+  componentId: ""
+  assignee: ""
