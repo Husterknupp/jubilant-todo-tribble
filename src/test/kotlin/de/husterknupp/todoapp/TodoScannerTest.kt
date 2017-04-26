@@ -8,12 +8,12 @@ class TodoScannerTest {
     private val log by logger()
 
     @Test
-    fun update() {
+    fun scan() {
         val gitlabConfiguration = GitlabConfiguration()
         gitlabConfiguration.privateToken = Credentials().privateToken()
         gitlabConfiguration.url = Credentials().gitlabUrl()
         val scanner = TodoScanner(gitlabConfiguration)
 
-        scanner.update()
+        scanner.scan()
     }
 }

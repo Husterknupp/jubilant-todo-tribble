@@ -18,7 +18,7 @@ open class TodoScanner constructor(
     }
 
     @Scheduled(fixedDelay = 10000)
-    fun update() {
+    fun scan() {
         // todo make repo configurable
         val fileUrls = mutableSetOf<String>()
         val treeUrls = mutableSetOf("")
@@ -62,6 +62,7 @@ open class TodoScanner constructor(
         for (i in 0..lines.size - 1) {
             val line = lines[i]
             if (line.contains("todo", ignoreCase = true)) {
+                log.info("found todo!")
                 var context = ""
                 for (j in 7 downTo 1) {
                     context += "\n" + lines.getOrElse(i - j, {""})
@@ -86,8 +87,4 @@ open class TodoScanner constructor(
     }
 
     data class GitlabDirectory(val fileUrls: Set<String>, val treeUrls: Set<String>)
-//    todo extract as standalone class
-    data class Todo(val fileUrl: String, val lineOfCode: Int, val todoLineStr: String, val context: String) {
-        override fun toString(): String = "Todo(file=${fileUrl}, lineOfCode=$lineOfCode, todoLineStr=$todoLineStr)"
-    }
 }

@@ -7,7 +7,7 @@ import java.io.File
 @Service
 class TodoHistory {
     private val log by logger()
-    private val todos: Set<TodoScanner.Todo>
+    private val todos: Set<Todo>
 
     init {
         if (!File("./todos-so-far").isFile) {
@@ -21,7 +21,7 @@ class TodoHistory {
         }
     }
 
-    fun saveIfNew(todo: TodoScanner.Todo) {
+    fun saveIfNew(todo: Todo) {
 //        log.info(File("./application.yaml").readLines()[1])
 
         // TodoHistory.todoIsNew {
@@ -35,10 +35,10 @@ class TodoHistory {
         // }
     }
 
-    fun getUnnoticedTodos(todo: TodoScanner.Todo): Set<TodoScanner.Todo> {
+    fun getUnnoticedTodos(todo: Todo): Set<Todo> {
         return mutableSetOf()
     }
 
-    fun markAsNoticed(todo: TodoScanner.Todo, jiraTicketId: String) {
+    fun markAsNoticed(todo: Todo, jiraTicketId: String) {
     }
 }
