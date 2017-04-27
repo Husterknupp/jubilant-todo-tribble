@@ -1,5 +1,9 @@
 package de.husterknupp.todoapp
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import de.husterknupp.todoapp.configuration.logger
 import org.springframework.stereotype.Service
 import java.io.File
@@ -7,17 +11,22 @@ import java.io.File
 @Service
 class TodoHistory {
     private val log by logger()
-    private val todos: Set<Todo>
+    private val todos: Map<Int, Todo> // hash -> todoo object
 
     init {
+        ObjectMapper().registerModule(KotlinModule())
+        val mapper = jacksonObjectMapper()
         if (!File("./todos-so-far").isFile) {
             log.info("Could not find history file. Created ./todos-so-far")
             File("./todos-so-far").createNewFile()
-            todos = mutableSetOf()
+            todos = mutableMapOf()
         } else {
             log.info("For historical reasons.. using already present file ./todos-so-far")
 //            todo JSONify of File("./todos-so-far")
-            todos = mutableSetOf()
+//            todos = mutableSetOf()
+            val content = File("./todos-so-far").readLines().reduce { acc, s -> acc + s}
+            todos = mapper.readValue<Map<Int, Todo>>(content)
+            log.info(todos.getValue(123456).toString())
         }
     }
 
