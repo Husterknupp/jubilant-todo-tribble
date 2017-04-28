@@ -29,5 +29,4 @@ stats.json
 [^/]*-local.*
 lib/
 application.yaml
-
 todos-so-far
