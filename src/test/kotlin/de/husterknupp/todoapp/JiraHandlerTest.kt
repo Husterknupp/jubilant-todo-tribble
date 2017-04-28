@@ -1,6 +1,7 @@
 package de.husterknupp.todoapp
 
 import de.husterknupp.todoapp.configuration.JiraConfiguration
+import org.junit.Ignore
 import org.junit.Test
 
 class JiraHandlerTest {
@@ -17,6 +18,7 @@ class JiraHandlerTest {
     }
 
     @Test
+    @Ignore
     fun createJiraIssue() {
         val jiraConfig = JiraConfiguration()
         jiraConfig.url = Credentials().jiraUrl()
