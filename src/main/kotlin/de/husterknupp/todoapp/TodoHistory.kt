@@ -18,32 +18,35 @@ class TodoHistory(historyPath: String) {
     init {
         ObjectMapper().registerModule(KotlinModule())
         mapper = jacksonObjectMapper()
-        val file = File(historyPath)
-        historyFile = file
-        if (!file.isFile) {
+        historyFile = File(historyPath)
+        if (!historyFile.isFile) {
             log.info("Could not find history file. Created $historyPath")
-            file.createNewFile()
+            historyFile.createNewFile()
             todos = mutableMapOf()
             historyFile.writeText(mapper.writeValueAsString(todos))
         } else {
             log.info("For historical reasons.. using already present file $historyPath")
-            val content = file.readText()
+            val content = historyFile.readText()
             todos = mapper.readValue<MutableMap<Int, Todo>>(content)
         }
     }
 
     fun saveIfNew(todo: Todo) {
         if(!todos.contains(todo.hashCode())) {
-            println("new entry")
-            todos.put(todo.hashCode(), todo)
-            historyFile.writeText(mapper.writeValueAsString(todos))
+            save(todo)
         }
     }
 
-    fun getUnnoticedTodos(todo: Todo): Set<Todo> {
-        return mutableSetOf()
+    private fun save(todo: Todo) {
+        todos.put(todo.hashCode(), todo)
+        historyFile.writeText(mapper.writeValueAsString(todos))
     }
 
-    fun markAsNoticed(todo: Todo, jiraTicketId: String) {
+    fun getUnnoticedTodos(): Set<Todo> {
+        return todos.values.filter { todo -> !todo.noticedByJira }.toHashSet()
+    }
+
+    fun markAsNoticed(todo: Todo, jiraIssueId: String) {
+        save(todo.copy(noticedByJira = true, jiraIssueId = jiraIssueId))
     }
 }

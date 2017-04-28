@@ -71,7 +71,7 @@ open class TodoScanner constructor(
                 for (j in 1..7) {
                     context += "\n" + lines.getOrElse(i + j, {""})
                 }
-                val todo = Todo(url, i + 1, line, context)
+                val todo = Todo(url, i + 1, line, context, false, "")
                 todos.add(todo)
                 log.info("found new todo: ${todo.toString()} in ${r.url}")
             }
