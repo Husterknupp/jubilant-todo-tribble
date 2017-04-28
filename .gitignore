@@ -29,5 +29,5 @@ stats.json
 [^/]*-local.*
 lib/
 application.yaml
-src/test/kotlin/de/husterknupp/todoapp/Credentials.kt
+
 todos-so-far
