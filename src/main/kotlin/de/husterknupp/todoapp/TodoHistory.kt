@@ -9,39 +9,35 @@ import org.springframework.stereotype.Service
 import java.io.File
 
 @Service
-class TodoHistory {
+class TodoHistory(historyPath: String) {
     private val log by logger()
-    private val todos: Map<Int, Todo> // hash -> todoo object
+    private val todos: MutableMap<Int, Todo> // hash -> todoo object
+    private val historyFile: File
+    val mapper: ObjectMapper
 
     init {
         ObjectMapper().registerModule(KotlinModule())
-        val mapper = jacksonObjectMapper()
-        if (!File("./todos-so-far").isFile) {
-            log.info("Could not find history file. Created ./todos-so-far")
-            File("./todos-so-far").createNewFile()
+        mapper = jacksonObjectMapper()
+        val file = File(historyPath)
+        historyFile = file
+        if (!file.isFile) {
+            log.info("Could not find history file. Created $historyPath")
+            file.createNewFile()
             todos = mutableMapOf()
+            historyFile.writeText(mapper.writeValueAsString(todos))
         } else {
-            log.info("For historical reasons.. using already present file ./todos-so-far")
-//            todo JSONify of File("./todos-so-far")
-//            todos = mutableSetOf()
-            val content = File("./todos-so-far").readLines().reduce { acc, s -> acc + s}
-            todos = mapper.readValue<Map<Int, Todo>>(content)
-            log.info(todos.getValue(123456).toString())
+            log.info("For historical reasons.. using already present file $historyPath")
+            val content = file.readText()
+            todos = mapper.readValue<MutableMap<Int, Todo>>(content)
         }
     }
 
     fun saveIfNew(todo: Todo) {
-//        log.info(File("./application.yaml").readLines()[1])
-
-        // TodoHistory.todoIsNew {
-        //   read history file
-        //   read hashes from file
-        //   build hash from given todoo
-        //   compare against given hashes from file
-        //   if todoo hash is new
-        //     serialize todoo to json
-        //     store serialized todoo along w/ hash
-        // }
+        if(!todos.contains(todo.hashCode())) {
+            println("new entry")
+            todos.put(todo.hashCode(), todo)
+            historyFile.writeText(mapper.writeValueAsString(todos))
+        }
     }
 
     fun getUnnoticedTodos(todo: Todo): Set<Todo> {
