@@ -18,11 +18,11 @@ open class JiraHandler constructor(
     init {
     }
 
-    fun createJiraIssue(issueTitel :String, issueDescription :String) {
+    fun createJiraIssue(issueTitle :String, issueDescription :String) {
         val username = jiraConfiguration.username
         val password =jiraConfiguration.password
 
-        val payload = mapOf("fields" to mapOf("project" to mapOf("id" to jiraConfiguration.projectId), "summary" to issueTitel,
+        val payload = mapOf("fields" to mapOf("project" to mapOf("id" to jiraConfiguration.projectId), "summary" to issueTitle,
                 "description" to issueDescription, "issuetype" to mapOf("id" to jiraConfiguration.issueTypeId),
                 "assignee" to mapOf("name" to jiraConfiguration.assignee), "components" to arrayOf( mapOf("id" to jiraConfiguration.componentId))))
 
