@@ -18,12 +18,12 @@ open class JiraHandler constructor(
     init {
     }
 
-    fun createJiraIssue() {
+    fun createJiraIssue(issueTitel :String, issueDescription :String) {
         val username = jiraConfiguration.username
         val password =jiraConfiguration.password
 
-        val payload = mapOf("fields" to mapOf("project" to mapOf("id" to jiraConfiguration.projectId), "summary" to "What an amazing Ticket",
-                "description" to "Did you liked the titel? Then you will love the description", "issuetype" to mapOf("id" to jiraConfiguration.issueTypeId),
+        val payload = mapOf("fields" to mapOf("project" to mapOf("id" to jiraConfiguration.projectId), "summary" to issueTitel,
+                "description" to issueDescription, "issuetype" to mapOf("id" to jiraConfiguration.issueTypeId),
                 "assignee" to mapOf("name" to jiraConfiguration.assignee), "components" to arrayOf( mapOf("id" to jiraConfiguration.componentId))))
 
         val authHeader = String(Base64.getEncoder().encode("$username:$password".toByteArray()));
