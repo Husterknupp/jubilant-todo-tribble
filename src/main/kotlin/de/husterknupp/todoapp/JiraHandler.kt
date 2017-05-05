@@ -4,7 +4,6 @@ import de.husterknupp.todoapp.configuration.JiraConfiguration
 import de.husterknupp.todoapp.configuration.logger
 import khttp.get
 import khttp.post
-import org.json.JSONObject
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -14,9 +13,6 @@ open class JiraHandler constructor(
 ) {
     private val log by logger()
     private val repoSegment: String = "/rest/api/2/"
-
-    init {
-    }
 
     fun createJiraIssue(issueTitle :String, issueDescription :String) {
         val username = jiraConfiguration.username

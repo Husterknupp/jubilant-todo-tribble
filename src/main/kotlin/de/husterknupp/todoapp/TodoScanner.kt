@@ -14,9 +14,6 @@ open class TodoScanner constructor(
     private val log by logger()
     private val repoSegment: String = "/api/v4/projects/1801/repository"
 
-    init {
-    }
-
     @Scheduled(fixedDelay = 10000)
     fun scan() {
         // todo make repo configurable
