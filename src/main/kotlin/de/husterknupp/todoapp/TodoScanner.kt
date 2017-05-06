@@ -9,14 +9,15 @@ import org.springframework.stereotype.Service
 
 @Service
 open class TodoScanner constructor(
-        private val gitlabConfiguration: GitlabConfiguration
+        private val gitlabConfiguration: GitlabConfiguration,
+        private val todoHistory: TodoHistory
 ) {
     private val log by logger()
-    private val repoSegment: String = "/api/v4/projects/1801/repository"
+    // todo make repo configurable
+    private val repoSegment: String = "/api/v4/projects/1546/repository"
 
     @Scheduled(fixedDelay = 10000)
     fun scan() {
-        // todo make repo configurable
         val fileUrls = mutableSetOf<String>()
         val treeUrls = mutableSetOf("")
         while (treeUrls.isNotEmpty()) {
@@ -29,7 +30,10 @@ open class TodoScanner constructor(
         log.info("found ${fileUrls.size} files")
         fileUrls.forEach { url -> log.info(url) }
 
-        log.info("found ${fileUrls.flatMap { url -> downloadAndFindTodos(url) }.size} todos")
+        val savedTodos = fileUrls
+                .flatMap { url -> downloadAndFindTodos(url) }
+                .map { todoHistory.saveIfNew(it) }
+        log.info("found ${savedTodos.size} todos (${savedTodos.count { it }} are new)")
     }
 
     private fun findTreeAndFileUrls(treePath: String): GitlabDirectory {
@@ -52,7 +56,7 @@ open class TodoScanner constructor(
     }
 
     private fun downloadAndFindTodos(url: String): List<Todo> {
-        val gitlabUrl = "${gitlabConfiguration.url}${repoSegment}/files/$url/raw"
+        val gitlabUrl = "${gitlabConfiguration.url}$repoSegment/files/$url/raw"
         val r = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "ref" to "master"))
         val lines = r.text.lines()
         val todos: MutableList<Todo> = mutableListOf<Todo>()
@@ -70,7 +74,7 @@ open class TodoScanner constructor(
                 }
                 val todo = Todo(url, i + 1, line, context, false, "")
                 todos.add(todo)
-                log.info("found new todo: ${todo.toString()} in ${r.url}")
+                log.info("found new todo: $todo in ${r.url}")
             }
         }
         return todos

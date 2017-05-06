@@ -11,7 +11,7 @@ class TodoScannerTest {
     @Ignore
     @Test
     fun scan() {
-        val scanner = TodoScanner(loadApplicationYaml())
+        val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
         scanner.scan()
     }
 

@@ -31,9 +31,12 @@ class TodoHistory(historyPath: String = "./todos-so-far") {
         }
     }
 
-    fun saveIfNew(todo: Todo) {
+    fun saveIfNew(todo: Todo): Boolean {
         if(!todos.contains(todo.hashCode())) {
             save(todo)
+            return true
+        } else {
+            return false
         }
     }
 

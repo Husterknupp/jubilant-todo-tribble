@@ -17,7 +17,6 @@ open class GitlabGateway constructor(
 
     fun getStatus(): HttpStatus {
         try {
-            log.info("HUHU!")
             return restTemplate.getForEntity(gitlabConfiguration.url + "/status", String::class.java).statusCode
         } catch (e: Exception) {
             log.error("Error retrieving status of Gitlab", e)
