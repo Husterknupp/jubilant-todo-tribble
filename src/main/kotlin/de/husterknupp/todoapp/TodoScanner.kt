@@ -13,8 +13,7 @@ open class TodoScanner constructor(
         private val todoHistory: TodoHistory
 ) {
     private val log by logger()
-    // todo make repo configurable
-    private val repoSegment: String = "/api/v4/projects/1546/repository"
+    private val repoSegment: String = "/api/v4/projects/${gitlabConfiguration.repoId}/repository"
 
     @Scheduled(fixedDelay = 10000)
     fun scan() {
@@ -37,7 +36,7 @@ open class TodoScanner constructor(
     }
 
     private fun findTreeAndFileUrls(treePath: String): GitlabDirectory {
-        val gitlabUrl = "${gitlabConfiguration.url}${repoSegment}/tree"
+        val gitlabUrl = "${gitlabConfiguration.url}$repoSegment/tree"
         val response = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "path" to treePath))
         log.info("requesting ${response.request.url}")
         val files = response.jsonArray

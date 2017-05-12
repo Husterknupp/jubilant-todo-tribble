@@ -24,6 +24,9 @@ open class GitlabConfiguration {
 
     @NotNull
     lateinit var privateToken: String
+
+    @NotNull
+    lateinit var repoId: String
 }
 
 @Configuration

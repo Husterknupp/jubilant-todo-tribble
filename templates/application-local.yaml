@@ -37,6 +37,7 @@ rest:
 gitlab:
   url: ""
   privateToken: ""
+  repoId: ""
 
 jira:
   url: ""

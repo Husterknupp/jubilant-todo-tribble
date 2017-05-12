@@ -20,6 +20,7 @@ class TodoScannerTest {
         val configuration = GitlabConfiguration()
         configuration.privateToken = yamlConfig.get("privateToken")
         configuration.url = yamlConfig.get("url")
+        configuration.repoId = yamlConfig.get("repoId")
         return configuration
     }
 }
