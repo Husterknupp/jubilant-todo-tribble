@@ -15,6 +15,10 @@ open class TodoScanner constructor(
     private val log by logger()
     private val repoSegment: String = "/api/v4/projects/${gitlabConfiguration.repoId}/repository"
 
+    fun findNewTodos(diff: String) :List<Todo> {
+        return emptyList()
+    }
+
     @Scheduled(fixedDelay = 10000)
     fun scan() {
         val fileUrls = mutableSetOf<String>()

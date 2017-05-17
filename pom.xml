@@ -19,7 +19,7 @@
 
     <groupId>de.bschandera</groupId>
     <artifactId>jubilant-todo-tribble</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-feature_16-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Jubilant Todo Tribble</name>
@@ -203,6 +203,12 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
             <version>2.5.1</version>
             <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>4.7.0.201704051617-r</version>
         </dependency>
     </dependencies>
 

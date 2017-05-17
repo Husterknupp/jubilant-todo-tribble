@@ -1,0 +1,9 @@
+diff --git a/todos b/todos
+index 04911c7..c9a0956 100644
+--- a/todos
++++ b/todos
+@@ -1,4 +1,3 @@
+ bogus bla bla bla
+ bogus bla bla bla
+-todo fix some time
+ bogus bla bla bla
