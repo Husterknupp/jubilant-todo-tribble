@@ -1,0 +1,10 @@
+diff --git a/todos b/todos
+deleted file mode 100644
+index 4a180a4..0000000
+--- a/todos
++++ /dev/null
+@@ -1,4 +0,0 @@
+-bogus bla bla bla
+-bogus bla bla bla
+-todo fix some time but don't break it
+-bogus bla bla bla

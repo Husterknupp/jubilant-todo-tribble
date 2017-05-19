@@ -1,5 +1,7 @@
 package de.husterknupp.todoapp
 
+import de.husterknupp.todoapp.TodoState.NEW_NOTIFIED
+import de.husterknupp.todoapp.TodoState.NEW_NOT_NOTIFIED
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -28,7 +30,7 @@ class TodoHistoryTest {
 
     @Test
     fun testSaveIfNew() {
-        val todo = Todo("url", 1, "todo refactor this", "big huge context", false, "")
+        val todo = Todo("url", 1, "todo refactor this", "big huge context", NEW_NOT_NOTIFIED, "")
         TodoHistory("./test-history").saveIfNew(todo)
 
         assertTrue("should find hash code in history file",
@@ -45,9 +47,9 @@ class TodoHistoryTest {
                 .writeText("{\"7164087\":{\"fileUrl\":\"url\"" +
                         ",\"lineOfCode\":1,\"todoLineStr\":\"todo\"," +
                         "\"context\":\"big huge context\"" +
-                        ",\"noticedByJira\":false,\"jiraIssueId\":\"\"}}")
+                        ",\"state\":NEW_NOT_NOTIFIED,\"jiraIssueId\":\"\"}}")
 
-        val todo = Todo("url", 1, "todo", "changed context", false, "")
+        val todo = Todo("url", 1, "todo", "changed context", NEW_NOT_NOTIFIED, "")
         TodoHistory("./test-history").saveIfNew(todo)
 
         assertTrue("should find hash code in history file",
@@ -62,31 +64,31 @@ class TodoHistoryTest {
     @Test
     fun testGetUnnoticedTodos() {
         val todoHistory = TodoHistory("./test-history")
-        val unoticedTodo = Todo("url", 1, "todo", "changed context", noticedByJira = false, jiraIssueId = "")
+        val unoticedTodo = Todo("url", 1, "todo", "changed context", state = NEW_NOT_NOTIFIED, jiraIssueId = "")
         todoHistory.saveIfNew(unoticedTodo)
-        val noticedTodo = Todo("other file", 1, "other todo", "changed context", noticedByJira = true, jiraIssueId = "")
+        val noticedTodo = Todo("other file", 1, "other todo", "changed context", state = NEW_NOTIFIED, jiraIssueId = "")
         todoHistory.saveIfNew(noticedTodo)
 
-        assertEquals(todoHistory.getUnnoticedTodos().size, 1)
+        assertEquals(todoHistory.getUnnoticedNewTodos().size, 1)
     }
 
     @Test
     fun testMarkAsNoticed() {
         val todoHistory = TodoHistory("./test-history")
-        val todo = Todo("url", 1, "todo", "changed context", noticedByJira = false, jiraIssueId = "")
+        val todo = Todo("url", 1, "todo", "changed context", state = NEW_NOT_NOTIFIED, jiraIssueId = "")
         todoHistory.saveIfNew(todo)
 
-        assertEquals(todoHistory.getUnnoticedTodos().size, 1)
+        assertEquals(todoHistory.getUnnoticedNewTodos().size, 1)
         todoHistory.markAsNoticed(todo, "DEV-123")
 
-        assertEquals(todoHistory.getUnnoticedTodos().size, 0)
+        assertEquals(todoHistory.getUnnoticedNewTodos().size, 0)
         assertTrue { testHistoryFile.readText().contains("DEV-123") }
     }
 
     @Test
     fun testMarkAsNoticedSavesAlsoNewTodos() {
         val todoHistory = TodoHistory("./test-history")
-        val todo = Todo("url", 1, "todo", "changed context", noticedByJira = false, jiraIssueId = "")
+        val todo = Todo("url", 1, "todo", "changed context", state = NEW_NOT_NOTIFIED, jiraIssueId = "")
 
         assertFalse { testHistoryFile.readText().contains("DEV-123") }
         todoHistory.markAsNoticed(todo, "DEV-123")

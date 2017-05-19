@@ -7,6 +7,9 @@ import org.json.JSONObject
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
+//    todo after a commit has been scanned the commit hash/timestamp should be saved
+//    todo commit id along with todo so that I can see at what repo version the todo was still there
+
 @Service
 open class TodoScanner constructor(
         private val gitlabConfiguration: GitlabConfiguration,
@@ -15,7 +18,7 @@ open class TodoScanner constructor(
     private val log by logger()
     private val repoSegment: String = "/api/v4/projects/${gitlabConfiguration.repoId}/repository"
 
-    fun findNewTodos(diff: String) :List<Todo> {
+    fun findChangedTodos(diff: String) :List<Todo> {
         return emptyList()
     }
 
@@ -75,7 +78,7 @@ open class TodoScanner constructor(
                 for (j in 1..7) {
                     context += "\n" + lines.getOrElse(i + j, {""})
                 }
-                val todo = Todo(url, i + 1, line, context, false, "")
+                val todo = Todo(url, i + 1, line, context)
                 todos.add(todo)
                 log.info("found new todo: $todo in ${r.url}")
             }

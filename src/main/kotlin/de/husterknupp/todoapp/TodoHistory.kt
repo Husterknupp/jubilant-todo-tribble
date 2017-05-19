@@ -45,11 +45,11 @@ class TodoHistory(historyPath: String = "./todos-so-far") {
         historyFile.writeText(mapper.writeValueAsString(todos))
     }
 
-    fun getUnnoticedTodos(): Set<Todo> {
-        return todos.values.filter { todo -> !todo.noticedByJira }.toHashSet()
+    fun getUnnoticedNewTodos(): Set<Todo> {
+        return todos.values.filter { todo -> todo.isNew() }.toHashSet()
     }
 
     fun markAsNoticed(todo: Todo, jiraIssueId: String) {
-        save(todo.copy(noticedByJira = true, jiraIssueId = jiraIssueId))
+        save(todo.copy(state = TodoState.NEW_NOTIFIED, jiraIssueId = jiraIssueId))
     }
 }
