@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.charset.StandardCharsets
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class TodoScannerTest {
     private val log by logger()
@@ -18,6 +19,11 @@ class TodoScannerTest {
     fun scan() {
         val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
         scanner.scan()
+    }
+
+    @Test
+    fun yeyIknowHowToUseRegex() {
+        assertTrue("@@ -1,3 +1,4 @@".contains(Regex("@@.*@@")))
     }
 
     @Test
@@ -32,6 +38,7 @@ class TodoScannerTest {
         assertEquals(todos.size, 1)
         assertEquals(todos[0].lineOfCode, 3)
         assertEquals(todos[0].state, TodoState.NEW_NOT_NOTIFIED)
+        assertEquals(todos[0].context, "bogus bla bla bla\nbogus bla bla bla\ntodo fix some time\nbogus bla bla bla\n")
     }
 
     @Test
@@ -91,14 +98,6 @@ class TodoScannerTest {
         assertEquals(todos[0].lineOfCode, 3)
         assertEquals(todos[0].state, TodoState.REMOVED_NOT_NOTIFIED)
     }
-
-//    @Test
-//    fun patchTest_jgit() {
-//        val diffLines = File("src/test/resources/diff-add-todo-line").readText()
-//        val patch = Patch()
-//        val parseUnifiedDiff = patch.parse(ByteArrayInputStream(diffLines.toByteArray(StandardCharsets.UTF_8)))
-//        println()
-//    }
 
     fun loadApplicationYaml(): GitlabConfiguration {
         val yamlConfig = Yaml("application.yaml", "gitlab")
