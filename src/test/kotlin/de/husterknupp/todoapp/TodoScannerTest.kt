@@ -26,6 +26,10 @@ class TodoScannerTest {
         assertTrue("@@ -1,3 +1,4 @@".contains(Regex("@@.*@@")))
     }
 
+//    todo two todos
+//    todo two changes, todo change is the second
+//    todo one change, no todo
+
     @Test
     fun findNewTodoInLine3() {
         val diffLines = File("src/test/resources/diff-add-todo-line").readText()
@@ -67,8 +71,8 @@ class TodoScannerTest {
         assertEquals(todos.size, 2)
         assertEquals(todos[0].lineOfCode, 3)
         assertEquals(todos[0].state, TodoState.REMOVED_NOT_NOTIFIED)
-        assertEquals(todos[0].lineOfCode, 3)
-        assertEquals(todos[0].state, TodoState.NEW_NOT_NOTIFIED)
+        assertEquals(todos[1].lineOfCode, 3)
+        assertEquals(todos[1].state, TodoState.NEW_NOT_NOTIFIED)
     }
 
     @Test

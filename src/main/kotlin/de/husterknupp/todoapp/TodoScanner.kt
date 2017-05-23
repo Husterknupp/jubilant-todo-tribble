@@ -43,6 +43,11 @@ open class TodoScanner constructor(
                     }
                 } else if (line.startsWith("-")) {
                     deletedLinesCount++
+                    if (line.contains("todo", ignoreCase = true)) {
+                        val hunkLinesOnlyAdds = hunkLines.filter { line -> !line.startsWith("+") }.map { line -> line.drop(1) }
+                        val todoLineNoInNewFile = hunk.oldImage.startLine + index - addedLinesCount
+                        result.add(Todo(hunk.fileHeader.oldPath, todoLineNoInNewFile, line.drop(1), hunkLinesOnlyAdds.joinToString("\n"), TodoState.REMOVED_NOT_NOTIFIED))
+                    }
                 }
             }
         }
