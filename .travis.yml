@@ -7,6 +7,10 @@ os:
  - osx
  - linux
 
+notifications:
+  email:
+    on_failure: always
+
 matrix:
   allow_failures:
     - os: linux
