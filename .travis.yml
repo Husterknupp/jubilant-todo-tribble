@@ -1,7 +1,6 @@
 language: java
 os:
  - osx
- - linux
 
 matrix:
   allow_failures:
