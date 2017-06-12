@@ -1,4 +1,2 @@
 language: java
-os:
- - osx
- - linux
+os: osx
