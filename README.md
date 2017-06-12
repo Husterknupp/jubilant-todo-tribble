@@ -1,6 +1,8 @@
 # jubilant-todo-tribble
 find repo todos, create Jira tickets and reference todos in the tickets.
 
+[![Build Status](https://travis-ci.org/Husterknupp/jubilant-todo-tribble.svg?branch=master)](https://travis-ci.org/Husterknupp/jubilant-todo-tribble)
+
 ### Compile & Run
 ```
 mvn package
