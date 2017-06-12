@@ -15,8 +15,8 @@ open class JiraHandler constructor(
     private val repoSegment: String = "/rest/api/2/"
 
     fun createJiraIssue(issueTitle :String, issueDescription :String) {
-        val username = jiraConfiguration.username
-        val password =jiraConfiguration.password
+//        val username = jiraConfiguration.username
+//        val password =jiraConfiguration.password
 
         val payload = mapOf("fields" to mapOf("project" to mapOf("id" to jiraConfiguration.projectId), "summary" to issueTitle,
                 "description" to issueDescription, "issuetype" to mapOf("id" to jiraConfiguration.issueTypeId),
