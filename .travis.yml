@@ -1,2 +1,8 @@
 language: java
-os: osx
+os:
+ - osx
+ - linux
+
+matrix:
+  allow_failures:
+    - os: linux
