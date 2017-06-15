@@ -4,16 +4,3 @@ jdk:
 
 TRAVIS_BRANCH: master
 TRAVIS_BRANCH: develop
-
-os:
- - osx
- - linux
-
-notifications:
-  email:
-    on_success: change
-    on_failure: always
-
-matrix:
-  allow_failures:
-    - os: linux
