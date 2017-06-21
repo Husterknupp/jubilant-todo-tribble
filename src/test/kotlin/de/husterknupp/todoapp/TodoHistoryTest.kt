@@ -47,8 +47,7 @@ class TodoHistoryTest {
                 .writeText("{\"7164087\":{\"fileUrl\":\"url\"" +
                         ",\"lineOfCode\":1,\"todoLineStr\":\"todo\"," +
                         "\"context\":\"big huge context\"" +
-                        ",\"state\":NEW_NOT_NOTIFIED,\"jiraIssueId\":\"\"}}")
-
+                        ",\"state\":\"NEW_NOT_NOTIFIED\",\"jiraIssueId\":\"\"}}")
         val todo = Todo("url", 1, "todo", "changed context", NEW_NOT_NOTIFIED, "")
         TodoHistory("./test-history").saveIfNew(todo)
 

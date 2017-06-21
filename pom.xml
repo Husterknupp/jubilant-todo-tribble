@@ -129,6 +129,12 @@
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
             <version>2.8.7</version>
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<artifactId>kotlin-reflect</artifactId>-->
+                    <!--<groupId>org.jetbrains.kotlin</groupId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
         </dependency>
 
         <dependency>
@@ -140,6 +146,12 @@
             <groupId>khttp</groupId>
             <artifactId>khttp</artifactId>
             <version>0.1.0</version>
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<artifactId>kotlin-stdlib</artifactId>-->
+                    <!--<groupId>org.jetbrains.kotlin</groupId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -202,6 +214,12 @@
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
             <version>4.7.0.201704051617-r</version>
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<artifactId>httpclient</artifactId>-->
+                    <!--<groupId>org.apache.httpcomponents</groupId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
         </dependency>
     </dependencies>
 

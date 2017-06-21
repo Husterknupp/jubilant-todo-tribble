@@ -13,7 +13,7 @@ class TodoHistory(historyPath: String = "./todos-so-far") {
     private val log by logger()
     private val todos: MutableMap<Int, Todo> // hash -> todoo object
     private val historyFile: File
-    val mapper: ObjectMapper
+    private val mapper: ObjectMapper
 
     init {
         ObjectMapper().registerModule(KotlinModule())
@@ -23,7 +23,7 @@ class TodoHistory(historyPath: String = "./todos-so-far") {
             log.info("Could not find history file. Created $historyPath")
             historyFile.createNewFile()
             todos = mutableMapOf()
-            historyFile.writeText(mapper.writeValueAsString(todos))
+            historyFile.writeText(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(todos))
         } else {
             log.info("For historical reasons.. using already present file $historyPath")
             val content = historyFile.readText()
@@ -34,6 +34,7 @@ class TodoHistory(historyPath: String = "./todos-so-far") {
     fun saveIfNew(todo: Todo): Boolean {
         if(!todos.contains(todo.hashCode())) {
             save(todo)
+            log.info("saved new todo $todo")
             return true
         } else {
             return false
@@ -42,7 +43,7 @@ class TodoHistory(historyPath: String = "./todos-so-far") {
 
     private fun save(todo: Todo) {
         todos.put(todo.hashCode(), todo)
-        historyFile.writeText(mapper.writeValueAsString(todos))
+        historyFile.writeText(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(todos))
     }
 
     fun getUnnoticedNewTodos(): Set<Todo> {

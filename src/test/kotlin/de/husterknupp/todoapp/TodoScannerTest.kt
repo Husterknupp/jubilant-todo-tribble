@@ -18,7 +18,7 @@ class TodoScannerTest {
     @Test
     fun scan() {
         val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
-        scanner.scan()
+        scanner.scanFileTree()
     }
 
     @Test

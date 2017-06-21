@@ -1,5 +1,10 @@
 package de.husterknupp.todoapp
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import de.husterknupp.todoapp.configuration.GitlabConfiguration
 import de.husterknupp.todoapp.configuration.logger
 import khttp.get
@@ -9,20 +14,27 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
+import java.util.*
 
 //  todo after a commit has been scanned the commit hash/timestamp should be saved
 //  todo commit id along with todo so that I can see at what repo version the todo was still there
-//  todo fix missing context - don't juggle with add/del at the same time.
-//      First have a 'add' representation
-//      Second have a 'delete' representation and find todos respectively
-
+//  todo scanFileTree Todo<SPACE> instead w/o <SPACE>
 @Service
 open class TodoScanner constructor(
         private val gitlabConfiguration: GitlabConfiguration,
         private val todoHistory: TodoHistory
 ) {
     private val log by logger()
-    private val repoSegment: String = "/api/v4/projects/${gitlabConfiguration.repoId}/repository"
+    private val repoBase = gitlabConfiguration.url + "/api/v4/projects/${gitlabConfiguration.repoId}/repository"
+    private var repoInitiallyScanned = true
+    private val mapper: ObjectMapper
+
+    init {
+        ObjectMapper().registerModule(KotlinModule())
+        mapper = jacksonObjectMapper()
+    }
 
     fun findChangedTodos(diff: String) :List<Todo> {
         val patch = Patch()
@@ -33,6 +45,9 @@ open class TodoScanner constructor(
             val hunkLines = String(hunk.buffer).lines().drop(lineNoBeforeHunkStarts + 1)
             var deletedLinesCount = 0
             var addedLinesCount = 0
+//  todo make code easier to read
+//      First have a 'add' representation
+//      Second have a 'delete' representation and find todos respectively
             hunkLines.mapIndexed { index, line ->
                 if (line.startsWith("+")) {
                     addedLinesCount++
@@ -54,8 +69,45 @@ open class TodoScanner constructor(
         return result
     }
 
+    /*
+        For new repos
+        remember current timestamp in format 2012-09-20T11:50:22+03:00
+        scanFileTree and save whole file tree for todos as usual
+        mark for this repo somewhere 'initialScanDone: true'
+        save remembered timestamp along ('lastIntervalScan')
+
+        For all known repos (initialScanDone: true)
+        4. remember current timestamp
+        5. read remembered timestamp (lastIntervalScan)
+        6. read commits since then, scanFileTree and update todos in diffs
+        7. save remembered timestamp in lastIntervalScan
+
+     */
     @Scheduled(fixedDelay = 10000)
-    fun scan() {
+    fun scanCommits() {
+        if (!repoInitiallyScanned) {
+            log.info("Please do initial repo scanFileTree to save some work on my side")
+            return
+        }
+
+        val timestampFrom = Date(0).toInstant().atZone(ZoneId.of("GMT")).truncatedTo(ChronoUnit.SECONDS).toString()
+        val timestampTo = Date().toInstant().atZone(ZoneId.of("GMT")).truncatedTo(ChronoUnit.SECONDS).toString()
+
+        val response = get(repoBase + "/commits", params = mapOf(
+                "private_token" to gitlabConfiguration.privateToken
+                ,"since" to timestampFrom
+                ,"until" to timestampTo))
+        log.info("requesting ${response.request.url}")
+        log.info(response.text)
+        mapper.readValue<List<Commit>>(response.text).forEach({ (id) ->
+            val diffPayload = get("$repoBase/commits/$id/diff", params = mapOf("private_token" to gitlabConfiguration.privateToken)).text
+            mapper.readValue<List<CommitDiff>>(diffPayload)
+                    .flatMap { findChangedTodos(it.diff) }
+                    .forEach { todoHistory.saveIfNew(it) }
+        })
+    }
+
+    fun scanFileTree() {
         val fileUrls = mutableSetOf<String>()
         val treeUrls = mutableSetOf("")
         while (treeUrls.isNotEmpty()) {
@@ -75,7 +127,7 @@ open class TodoScanner constructor(
     }
 
     private fun findTreeAndFileUrls(treePath: String): GitlabDirectory {
-        val gitlabUrl = "${gitlabConfiguration.url}$repoSegment/tree"
+        val gitlabUrl = "$repoBase/tree"
         val response = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "path" to treePath))
         log.info("requesting ${response.request.url}")
         val files = response.jsonArray
@@ -94,7 +146,7 @@ open class TodoScanner constructor(
     }
 
     private fun downloadAndFindTodos(url: String): List<Todo> {
-        val gitlabUrl = "${gitlabConfiguration.url}$repoSegment/files/$url/raw"
+        val gitlabUrl = "$repoBase/files/$url/raw"
         val r = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "ref" to "master"))
         val lines = r.text.lines()
         val todos: MutableList<Todo> = mutableListOf<Todo>()
@@ -126,4 +178,10 @@ open class TodoScanner constructor(
     }
 
     data class GitlabDirectory(val fileUrls: Set<String>, val treeUrls: Set<String>)
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class Commit(val id: String)
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    data class CommitDiff(val diff: String)
 }

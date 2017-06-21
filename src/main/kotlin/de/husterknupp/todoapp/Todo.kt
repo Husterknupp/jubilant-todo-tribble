@@ -1,5 +1,7 @@
 package de.husterknupp.todoapp
 
+import java.beans.Transient
+
 enum class TodoState{
     NEW_NOT_NOTIFIED, NEW_NOTIFIED,
     REMOVED_NOT_NOTIFIED, REMOVED_NOTIFIED
@@ -12,6 +14,7 @@ data class Todo(val fileUrl: String
                 , val state: TodoState = TodoState.NEW_NOT_NOTIFIED
                 , val jiraIssueId: String = "") {
 
+    @Transient
     fun isNew(): Boolean {
         return this.state == TodoState.NEW_NOT_NOTIFIED
     }
