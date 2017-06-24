@@ -109,6 +109,7 @@ class TodoScannerTest {
         configuration.privateToken = yamlConfig.get("privateToken")
         configuration.url = yamlConfig.get("url")
         configuration.repoId = yamlConfig.get("repoId")
+        configuration.repoBranch = yamlConfig.get("repoBranch")
         return configuration
     }
 }

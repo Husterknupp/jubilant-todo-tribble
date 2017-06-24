@@ -38,6 +38,7 @@ gitlab:
   url: ""
   privateToken: ""
   repoId: ""
+  repoBranch: ""
 
 jira:
   url: ""

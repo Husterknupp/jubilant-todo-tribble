@@ -14,13 +14,14 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-//  todo after a commit has been scanned the commit hash/timestamp should be saved
 //  todo commit id along with todo so that I can see at what repo version the todo was still there
 //  todo scanFileTree Todo<SPACE> instead w/o <SPACE>
+//  todo list todos per repoId/branchName
 @Service
 open class TodoScanner constructor(
         private val gitlabConfiguration: GitlabConfiguration,
@@ -28,45 +29,58 @@ open class TodoScanner constructor(
 ) {
     private val log by logger()
     private val repoBase = gitlabConfiguration.url + "/api/v4/projects/${gitlabConfiguration.repoId}/repository"
-    private var repoInitiallyScanned = true
     private val mapper: ObjectMapper
+    private var scanning = false
+    private val scannedBranches = HashSet<ScannedBranch>()
 
     init {
         ObjectMapper().registerModule(KotlinModule())
         mapper = jacksonObjectMapper()
     }
 
-    fun findChangedTodos(diff: String) :List<Todo> {
-        val patch = Patch()
-        patch.parse(ByteArrayInputStream(diff.toByteArray(StandardCharsets.UTF_8)))
-        val result: MutableList<Todo> = ArrayList()
-        patch.files.flatMap { fileHeader -> fileHeader.hunks}.forEach { hunk ->
-            val lineNoBeforeHunkStarts = String(hunk.buffer).lines().indexOfFirst { line -> line.contains(Regex("@@.*@@")) }
-            val hunkLines = String(hunk.buffer).lines().drop(lineNoBeforeHunkStarts + 1)
-            var deletedLinesCount = 0
-            var addedLinesCount = 0
-//  todo make code easier to read
-//      First have a 'add' representation
-//      Second have a 'delete' representation and find todos respectively
-            hunkLines.mapIndexed { index, line ->
-                if (line.startsWith("+")) {
-                    addedLinesCount++
-                    if (line.contains("todo", ignoreCase = true)) {
-                        val hunkLinesOnlyAdds = hunkLines.filter { line -> !line.startsWith("-") }.map { line -> line.drop(1) }
-                        val todoLineNoInNewFile = hunk.newStartLine + index - deletedLinesCount
-                        result.add(Todo(hunk.fileHeader.newPath, todoLineNoInNewFile, line.drop(1), hunkLinesOnlyAdds.joinToString("\n")))
-                    }
-                } else if (line.startsWith("-")) {
-                    deletedLinesCount++
-                    if (line.contains("todo", ignoreCase = true)) {
-                        val hunkLinesOnlyAdds = hunkLines.filter { line -> !line.startsWith("+") }.map { line -> line.drop(1) }
-                        val todoLineNoInNewFile = hunk.oldImage.startLine + index - addedLinesCount
-                        result.add(Todo(hunk.fileHeader.oldPath, todoLineNoInNewFile, line.drop(1), hunkLinesOnlyAdds.joinToString("\n"), TodoState.REMOVED_NOT_NOTIFIED))
-                    }
-                }
+
+    @Scheduled(fixedDelay = 5 * 60 * 1000)
+    fun entryPoint() {
+        if (scanning) {
+            log.info("Currently scanning. Skipping this scheduled run")
+            return
+        }
+
+        scanning = true
+        val scannedBranch = findAllScannedBranches()
+                .filter {
+                    it.repoId == gitlabConfiguration.repoId
+                            && it.branchName == gitlabConfiguration.repoBranch
+                }.firstOrNull()
+        when (scannedBranch) {
+            null -> {
+                log.info("branch ${gitlabConfiguration.repoBranch} of repo ${gitlabConfiguration.repoId} not scanned yet.")
+                log.info("starting initial todo scan of whole file tree now")
+                scanFileTree()
+                saveScannedBranch(ScannedBranch(gitlabConfiguration.repoId, gitlabConfiguration.repoBranch, Instant.now().toEpochMilli()))
+            }
+            else -> {
+                log.info("Already scanned branch ${gitlabConfiguration.repoBranch} of repo ${gitlabConfiguration.repoId}")
+                val dateFormattedUtcScannedLast = Date(scannedBranch.timestampUtcScannedLast).toInstant()
+                        .atZone(ZoneId.of("GMT"))
+                        .truncatedTo(ChronoUnit.SECONDS).toString()
+                log.info("only scanning commits of repo since $dateFormattedUtcScannedLast")
+                scanCommits(dateFormattedUtcScannedLast)
+                saveScannedBranch(scannedBranch.copy(timestampUtcScannedLast = Instant.now().toEpochMilli()))
             }
         }
-        return result
+        scanning = false
+    }
+
+    private fun findAllScannedBranches(): Collection<ScannedBranch> {
+//        todo implement file system read
+        return scannedBranches
+    }
+
+    private fun saveScannedBranch(scannedBranch: ScannedBranch) {
+//        todo implement file system save
+        scannedBranches.removeIf { it.repoId == scannedBranch.repoId && it.branchName == scannedBranch.branchName }
+        scannedBranches.add(scannedBranch)
     }
 
     /*
@@ -81,24 +95,16 @@ open class TodoScanner constructor(
         5. read remembered timestamp (lastIntervalScan)
         6. read commits since then, scanFileTree and update todos in diffs
         7. save remembered timestamp in lastIntervalScan
-
      */
-    @Scheduled(fixedDelay = 10000)
-    fun scanCommits() {
-        if (!repoInitiallyScanned) {
-            log.info("Please do initial repo scanFileTree to save some work on my side")
-            return
-        }
-
-        val timestampFrom = Date(0).toInstant().atZone(ZoneId.of("GMT")).truncatedTo(ChronoUnit.SECONDS).toString()
+    fun scanCommits(dateFormattedUtcScannedLast: String) {
         val timestampTo = Date().toInstant().atZone(ZoneId.of("GMT")).truncatedTo(ChronoUnit.SECONDS).toString()
 
         val response = get(repoBase + "/commits", params = mapOf(
                 "private_token" to gitlabConfiguration.privateToken
-                ,"since" to timestampFrom
-                ,"until" to timestampTo))
+                ,"since" to dateFormattedUtcScannedLast
+                ,"until" to timestampTo
+                ,"ref_name" to gitlabConfiguration.repoBranch))
         log.info("requesting ${response.request.url}")
-        log.info(response.text)
         mapper.readValue<List<Commit>>(response.text).forEach({ (id) ->
             val diffPayload = get("$repoBase/commits/$id/diff", params = mapOf("private_token" to gitlabConfiguration.privateToken)).text
             mapper.readValue<List<CommitDiff>>(diffPayload)
@@ -106,6 +112,41 @@ open class TodoScanner constructor(
                     .forEach { todoHistory.saveIfNew(it) }
         })
     }
+
+    fun findChangedTodos(diff: String) :List<Todo> {
+        val patch = Patch()
+        patch.parse(ByteArrayInputStream(diff.toByteArray(StandardCharsets.UTF_8)))
+        val result: MutableList<Todo> = ArrayList()
+        patch.files.flatMap { fileHeader -> fileHeader.hunks}.forEach { hunk ->
+            val lineNoBeforeHunkStarts = String(hunk.buffer).lines().indexOfFirst { line -> line.contains(Regex("@@.*@@")) }
+            val hunkLines = String(hunk.buffer).lines().drop(lineNoBeforeHunkStarts + 1)
+            var deletedLinesCount = 0
+            var addedLinesCount = 0
+        //  todo make code easier to read
+        //      First have a 'add' representation
+        //      Second have a 'delete' representation and find todos respectively
+            hunkLines.mapIndexed { index, line ->
+                if (line.startsWith("+")) {
+                    addedLinesCount++
+                    if (stringContainsTodo(line)) {
+                        val hunkLinesOnlyAdds = hunkLines.filter { line -> !line.startsWith("-") }.map { line -> line.drop(1) }
+                        val todoLineNoInNewFile = hunk.newStartLine + index - deletedLinesCount
+                        result.add(Todo(hunk.fileHeader.newPath, todoLineNoInNewFile, line.drop(1), hunkLinesOnlyAdds.joinToString("\n")))
+                    }
+                } else if (line.startsWith("-")) {
+                    deletedLinesCount++
+                    if (stringContainsTodo(line)) {
+                        val hunkLinesOnlyAdds = hunkLines.filter { line -> !line.startsWith("+") }.map { line -> line.drop(1) }
+                        val todoLineNoInNewFile = hunk.oldImage.startLine + index - addedLinesCount
+                        result.add(Todo(hunk.fileHeader.oldPath, todoLineNoInNewFile, line.drop(1), hunkLinesOnlyAdds.joinToString("\n"), TodoState.REMOVED_NOT_NOTIFIED))
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    private fun stringContainsTodo(stringToCheck: String) = stringToCheck.contains("todo ", ignoreCase = true)
 
     fun scanFileTree() {
         val fileUrls = mutableSetOf<String>()
@@ -147,12 +188,13 @@ open class TodoScanner constructor(
 
     private fun downloadAndFindTodos(url: String): List<Todo> {
         val gitlabUrl = "$repoBase/files/$url/raw"
-        val r = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken, "ref" to "master"))
+        val r = get(gitlabUrl, params = mapOf("private_token" to gitlabConfiguration.privateToken,
+                "ref" to gitlabConfiguration.repoBranch))
         val lines = r.text.lines()
         val todos: MutableList<Todo> = mutableListOf<Todo>()
         for (i in 0..lines.size - 1) {
             val line = lines[i]
-            if (line.contains("todo", ignoreCase = true)) {
+            if (stringContainsTodo(line)) {
                 log.info("found todo!")
                 var context = ""
                 for (j in 7 downTo 1) {
@@ -176,12 +218,14 @@ open class TodoScanner constructor(
         encodedPath = path.replace(".", "%2E").replace("/", "%2F")
         return encodedPath
     }
-
-    data class GitlabDirectory(val fileUrls: Set<String>, val treeUrls: Set<String>)
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class Commit(val id: String)
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    data class CommitDiff(val diff: String)
 }
+
+data class GitlabDirectory(val fileUrls: Set<String>, val treeUrls: Set<String>)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class Commit(val id: String)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CommitDiff(val diff: String)
+
+data class ScannedBranch(val repoId: String, val branchName: String, val timestampUtcScannedLast: Long)
