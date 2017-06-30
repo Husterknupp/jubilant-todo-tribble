@@ -23,15 +23,16 @@ import java.util.*
 //  todo scanFileTree Todo<SPACE> instead w/o <SPACE>
 //  todo list todos per repoId/branchName
 @Service
-open class TodoScanner constructor(
+open class TodoScanner (
         private val gitlabConfiguration: GitlabConfiguration,
-        private val todoRepo: TodoRepository
+        private val todoRepo: TodoRepository,
+        val scannedBranchRepo: ScannedBranchRepository
 ) {
     private val log by logger()
     private val repoBase = gitlabConfiguration.url + "/api/v4/projects/${gitlabConfiguration.repoId}/repository"
     private val mapper: ObjectMapper
+
     private var scanning = false
-    private val scannedBranches = HashSet<ScannedBranch>()
 
     init {
         ObjectMapper().registerModule(KotlinModule())
@@ -47,7 +48,7 @@ open class TodoScanner constructor(
         }
 
         scanning = true
-        val scannedBranch = findAllScannedBranches()
+        val scannedBranch = scannedBranchRepo.findAllScannedBranches()
                 .filter {
                     it.repoId == gitlabConfiguration.repoId
                             && it.branchName == gitlabConfiguration.repoBranch
@@ -57,7 +58,7 @@ open class TodoScanner constructor(
                 log.info("branch ${gitlabConfiguration.repoBranch} of repo ${gitlabConfiguration.repoId} not scanned yet.")
                 log.info("starting initial todo scan of whole file tree now")
                 scanFileTree()
-                saveScannedBranch(ScannedBranch(gitlabConfiguration.repoId, gitlabConfiguration.repoBranch, Instant.now().toEpochMilli()))
+                scannedBranchRepo.saveScannedBranch(ScannedBranch(gitlabConfiguration.repoId, gitlabConfiguration.repoBranch, Instant.now().toEpochMilli()))
             }
             else -> {
                 log.info("Already scanned branch ${gitlabConfiguration.repoBranch} of repo ${gitlabConfiguration.repoId}")
@@ -66,21 +67,10 @@ open class TodoScanner constructor(
                         .truncatedTo(ChronoUnit.SECONDS).toString()
                 log.info("only scanning commits of repo since $dateFormattedUtcScannedLast")
                 scanCommits(dateFormattedUtcScannedLast)
-                saveScannedBranch(scannedBranch.copy(timestampUtcScannedLast = Instant.now().toEpochMilli()))
+                scannedBranchRepo.saveScannedBranch(scannedBranch.copy(timestampUtcScannedLast = Instant.now().toEpochMilli()))
             }
         }
         scanning = false
-    }
-
-    private fun findAllScannedBranches(): Collection<ScannedBranch> {
-//        todo implement file system read
-        return scannedBranches
-    }
-
-    private fun saveScannedBranch(scannedBranch: ScannedBranch) {
-//        todo implement file system save
-        scannedBranches.removeIf { it.repoId == scannedBranch.repoId && it.branchName == scannedBranch.branchName }
-        scannedBranches.add(scannedBranch)
     }
 
     /*
@@ -227,5 +217,3 @@ data class Commit(val id: String)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CommitDiff(val diff: String)
-
-data class ScannedBranch(val repoId: String, val branchName: String, val timestampUtcScannedLast: Long)
