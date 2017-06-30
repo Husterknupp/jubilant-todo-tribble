@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 import java.io.File
 
 @Service
-class TodoHistory(historyPath: String = "./todos-so-far") {
+class TodoRepository(historyPath: String = "./todos-so-far") {
     private val log by logger()
     private val todos: MutableMap<Int, Todo> // hash -> todoo object
     private val historyFile: File

@@ -17,7 +17,7 @@ class TodoScannerTest {
     @Ignore
     @Test
     fun scan() {
-        val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
+        val scanner = TodoScanner(loadApplicationYaml(), TodoRepository())
         scanner.scanFileTree()
     }
 
@@ -34,7 +34,7 @@ class TodoScannerTest {
     fun findNewTodoInLine3() {
         val diffLines = File("src/test/resources/diff-add-todo-line").readText()
         val patch = Patch()
-        val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
+        val scanner = TodoScanner(loadApplicationYaml(), TodoRepository())
 
         patch.parse(ByteArrayInputStream(diffLines.toByteArray(StandardCharsets.UTF_8)))
 
@@ -49,7 +49,7 @@ class TodoScannerTest {
     fun findRemovedTodoInLine3() {
         val diffLines = File("src/test/resources/diff-remove-todo-line").readText()
         val patch = Patch()
-        val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
+        val scanner = TodoScanner(loadApplicationYaml(), TodoRepository())
 
         patch.parse(ByteArrayInputStream(diffLines.toByteArray(StandardCharsets.UTF_8)))
 
@@ -63,7 +63,7 @@ class TodoScannerTest {
     fun findEditedTodoInLine3() {
         val diffLines = File("src/test/resources/diff-edit-todo-line").readText()
         val patch = Patch()
-        val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
+        val scanner = TodoScanner(loadApplicationYaml(), TodoRepository())
 
         patch.parse(ByteArrayInputStream(diffLines.toByteArray(StandardCharsets.UTF_8)))
 
@@ -79,7 +79,7 @@ class TodoScannerTest {
     fun findNewTodoInNewFileInLine3() {
         val diffLines = File("src/test/resources/diff-add-todo-file").readText()
         val patch = Patch()
-        val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
+        val scanner = TodoScanner(loadApplicationYaml(), TodoRepository())
 
         patch.parse(ByteArrayInputStream(diffLines.toByteArray(StandardCharsets.UTF_8)))
 
@@ -93,7 +93,7 @@ class TodoScannerTest {
     fun findRemovedTodoInRemovedFileInLine3() {
         val diffLines = File("src/test/resources/diff-remove-todo-file").readText()
         val patch = Patch()
-        val scanner = TodoScanner(loadApplicationYaml(), TodoHistory())
+        val scanner = TodoScanner(loadApplicationYaml(), TodoRepository())
 
         patch.parse(ByteArrayInputStream(diffLines.toByteArray(StandardCharsets.UTF_8)))
 

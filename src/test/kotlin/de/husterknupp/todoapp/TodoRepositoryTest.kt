@@ -11,7 +11,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 
-class TodoHistoryTest {
+class TodoRepositoryTest {
     val testHistoryFile = File("./test-history")
 
     @Before
@@ -31,7 +31,7 @@ class TodoHistoryTest {
     @Test
     fun testSaveIfNew() {
         val todo = Todo("url", 1, "todo refactor this", "big huge context", NEW_NOT_NOTIFIED, "")
-        TodoHistory("./test-history").saveIfNew(todo)
+        TodoRepository("./test-history").saveIfNew(todo)
 
         assertTrue("should find hash code in history file",
                 { testHistoryFile.readText().contains(todo.hashCode().toString()) })
@@ -49,7 +49,7 @@ class TodoHistoryTest {
                         "\"context\":\"big huge context\"" +
                         ",\"state\":\"NEW_NOT_NOTIFIED\",\"jiraIssueId\":\"\"}}")
         val todo = Todo("url", 1, "todo", "changed context", NEW_NOT_NOTIFIED, "")
-        TodoHistory("./test-history").saveIfNew(todo)
+        TodoRepository("./test-history").saveIfNew(todo)
 
         assertTrue("should find hash code in history file",
                 { testHistoryFile.readText().contains(todo.hashCode().toString()) })
@@ -62,35 +62,35 @@ class TodoHistoryTest {
 
     @Test
     fun testGetUnnoticedTodos() {
-        val todoHistory = TodoHistory("./test-history")
+        val todorepo = TodoRepository("./test-history")
         val unoticedTodo = Todo("url", 1, "todo", "changed context", state = NEW_NOT_NOTIFIED, jiraIssueId = "")
-        todoHistory.saveIfNew(unoticedTodo)
+        todorepo.saveIfNew(unoticedTodo)
         val noticedTodo = Todo("other file", 1, "other todo", "changed context", state = NEW_NOTIFIED, jiraIssueId = "")
-        todoHistory.saveIfNew(noticedTodo)
+        todorepo.saveIfNew(noticedTodo)
 
-        assertEquals(todoHistory.getUnnoticedNewTodos().size, 1)
+        assertEquals(todorepo.getUnnoticedNewTodos().size, 1)
     }
 
     @Test
     fun testMarkAsNoticed() {
-        val todoHistory = TodoHistory("./test-history")
+        val todoRepo = TodoRepository("./test-history")
         val todo = Todo("url", 1, "todo", "changed context", state = NEW_NOT_NOTIFIED, jiraIssueId = "")
-        todoHistory.saveIfNew(todo)
+        todoRepo.saveIfNew(todo)
 
-        assertEquals(todoHistory.getUnnoticedNewTodos().size, 1)
-        todoHistory.markAsNoticed(todo, "DEV-123")
+        assertEquals(todoRepo.getUnnoticedNewTodos().size, 1)
+        todoRepo.markAsNoticed(todo, "DEV-123")
 
-        assertEquals(todoHistory.getUnnoticedNewTodos().size, 0)
+        assertEquals(todoRepo.getUnnoticedNewTodos().size, 0)
         assertTrue { testHistoryFile.readText().contains("DEV-123") }
     }
 
     @Test
     fun testMarkAsNoticedSavesAlsoNewTodos() {
-        val todoHistory = TodoHistory("./test-history")
+        val todoRepo = TodoRepository("./test-history")
         val todo = Todo("url", 1, "todo", "changed context", state = NEW_NOT_NOTIFIED, jiraIssueId = "")
 
         assertFalse { testHistoryFile.readText().contains("DEV-123") }
-        todoHistory.markAsNoticed(todo, "DEV-123")
+        todoRepo.markAsNoticed(todo, "DEV-123")
 
         assertTrue { testHistoryFile.readText().contains("DEV-123") }
     }

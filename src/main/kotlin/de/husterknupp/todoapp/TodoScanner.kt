@@ -25,7 +25,7 @@ import java.util.*
 @Service
 open class TodoScanner constructor(
         private val gitlabConfiguration: GitlabConfiguration,
-        private val todoHistory: TodoHistory
+        private val todoRepo: TodoRepository
 ) {
     private val log by logger()
     private val repoBase = gitlabConfiguration.url + "/api/v4/projects/${gitlabConfiguration.repoId}/repository"
@@ -109,7 +109,7 @@ open class TodoScanner constructor(
             val diffPayload = get("$repoBase/commits/$id/diff", params = mapOf("private_token" to gitlabConfiguration.privateToken)).text
             mapper.readValue<List<CommitDiff>>(diffPayload)
                     .flatMap { findChangedTodos(it.diff) }
-                    .forEach { todoHistory.saveIfNew(it) }
+                    .forEach { todoRepo.saveIfNew(it) }
         })
     }
 
@@ -163,7 +163,7 @@ open class TodoScanner constructor(
 
         val savedTodos = fileUrls
                 .flatMap { url -> downloadAndFindTodos(url) }
-                .map { todoHistory.saveIfNew(it) }
+                .map { todoRepo.saveIfNew(it) }
         log.info("found ${savedTodos.size} todos (${savedTodos.count { it }} are new)")
     }
 
