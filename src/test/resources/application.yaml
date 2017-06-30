@@ -1,0 +1,14 @@
+gitlab:
+  url: ""
+  privateToken: ""
+  repoId: ""
+  repoBranch: ""
+
+jira:
+  url: ""
+  username: ""
+  password: ""
+  projectId: ""
+  issueTypeId: ""
+  componentId: ""
+  assignee: "main-resources"

@@ -28,5 +28,6 @@ stats.json
 *.iml
 [^/]*-local.*
 lib/
-application.yaml
+/application.yaml
 todos-so-far
+scanned-branches
