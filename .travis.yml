@@ -1,1 +1,6 @@
-# tbd
+language: java
+jdk:
+  - oraclejdk8
+
+TRAVIS_BRANCH: master
+TRAVIS_BRANCH: develop

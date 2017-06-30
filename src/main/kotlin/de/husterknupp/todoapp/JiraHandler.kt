@@ -5,7 +5,7 @@ import de.husterknupp.todoapp.configuration.logger
 import khttp.get
 import khttp.post
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.Base64
 
 @Service
 open class JiraHandler constructor(
@@ -22,9 +22,9 @@ open class JiraHandler constructor(
                 "description" to issueDescription, "issuetype" to mapOf("id" to jiraConfiguration.issueTypeId),
                 "assignee" to mapOf("name" to jiraConfiguration.assignee), "components" to arrayOf( mapOf("id" to jiraConfiguration.componentId))))
 
-        val authHeader = String(Base64.getEncoder().encode("$username:$password".toByteArray()));
+        val authHeader = String(Base64.getEncoder().encode("$username:$password".toByteArray()))
         val response = post("${jiraConfiguration.url}${repoSegment}issue/",
-                headers=mapOf("Authorization" to "Basic " + authHeader, "Content-Type" to "application/json"),
+                headers = mapOf("Authorization" to "Basic " + authHeader, "Content-Type" to "application/json"),
                 json = payload)
 
         log.info("response: ${response.jsonObject}")
