@@ -12,3 +12,4 @@ jira:
   issueTypeId: ""
   componentId: ""
   assignee: "main-resources"
+  issueId: ""

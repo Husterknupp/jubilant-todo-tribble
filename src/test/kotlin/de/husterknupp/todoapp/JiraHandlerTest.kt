@@ -9,14 +9,14 @@ class JiraHandlerTest {
     @Ignore
     @Test
     fun getJiraIssuesOfAssignee() {
-        val jiraHandler = JiraHandler(loadJiraYaml())
+        val jiraHandler = JiraHandler(loadJiraYaml(), TodoRepository())
         jiraHandler.getJiraIssuesOfAssignee()
     }
 
     @Ignore
     @Test
     fun createJiraIssue() {
-        val jiraHandler = JiraHandler(loadJiraYaml())
+        val jiraHandler = JiraHandler(loadJiraYaml(), TodoRepository())
         jiraHandler.createJiraIssue("", "")
     }
 
@@ -30,6 +30,7 @@ class JiraHandlerTest {
         configuration.password = yamlConfig.get("password")
         configuration.username = yamlConfig.get("username")
         configuration.url = yamlConfig.get("url")
+        configuration.issueId = yamlConfig.get("issueId")
         return configuration
     }
 

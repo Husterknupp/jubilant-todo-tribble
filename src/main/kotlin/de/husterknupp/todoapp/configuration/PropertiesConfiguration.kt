@@ -57,6 +57,8 @@ open class JiraConfiguration {
     @NotNull
     lateinit var componentId: String
 
+    @NotNull
+    lateinit var issueId: String
 
 }
 

@@ -48,3 +48,4 @@ jira:
   issueTypeId: ""
   componentId: ""
   assignee: ""
+  issueId: ""
