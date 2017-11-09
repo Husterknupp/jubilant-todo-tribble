@@ -15,3 +15,7 @@ copy `templates/application-local.yaml` -> `<APP_DIR>/application.yaml` and fill
 ### Libraries
 - http://khttp.readthedocs.io/en/latest/user/quickstart.html#more-complicated-post-requests
 - https://github.com/FasterXML/jackson-module-kotlin
+
+### APIs used
+- Jira: https://developer.atlassian.com/jiradev/jira-apis/jira-rest-apis/jira-rest-api-tutorials/updating-an-issue-via-the-jira-rest-apis + https://docs.atlassian.com/jira/REST/server/#api/2/issue-editIssue    
+- GitLab: https://docs.gitlab.com/ce/api/commits.html#get-a-single-commit
